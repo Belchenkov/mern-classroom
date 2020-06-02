@@ -70,7 +70,8 @@ export default function EditProfile({ match }) {
                     setValues({
                         ...values,
                         name: data.name,
-                        email: data.email
+                        email: data.email,
+                        educator: data.educator
                     });
                 }
             });
