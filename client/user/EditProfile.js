@@ -6,6 +6,8 @@ import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
 import Icon from '@material-ui/core/Icon';
+import FormControlLabel from '@material-ui/core/FormControlLabel'
+import Switch from '@material-ui/core/Switch'
 import { makeStyles } from '@material-ui/core/styles';
 import { Redirect } from 'react-router-dom';
 
@@ -44,6 +46,7 @@ export default function EditProfile({ match }) {
         name: '',
         password: '',
         email: '',
+        educator: false,
         open: false,
         error: '',
         redirectToProfile: false
@@ -67,7 +70,8 @@ export default function EditProfile({ match }) {
                     setValues({
                         ...values,
                         name: data.name,
-                        email: data.email
+                        email: data.email,
+                        educator: data.educator
                     });
                 }
             });
@@ -82,23 +86,22 @@ export default function EditProfile({ match }) {
         const user = {
             name: values.name || undefined,
             email: values.email || undefined,
-            password: values.password || undefined
+            password: values.password || undefined,
+            educator: values.educator || undefined
         };
 
-        update({
-            userId: match.params.userId
-        }, {
-            t: jwt.token
-        }, user)
+        update(
+            { userId: match.params.userId },
+            { t: jwt.token },
+            user
+        )
             .then(data => {
                 if (data && data.error) {
                     setValues({...values, error: data.error});
                 } else {
-                    setValues({
-                        ...values,
-                        userId: data._id,
-                        redirectToProfile: true
-                    });
+                    auth.updateUser(data, () => {
+                        setValues({...values, userId: data._id, redirectToProfile: true});
+                    })
                 }
             });
     }
@@ -109,6 +112,10 @@ export default function EditProfile({ match }) {
             [name]: event.target.value
         });
     };
+
+    const handleCheck = (event, checked) => {
+        setValues({...values, 'educator': checked})
+    }
 
     if (values.redirectToProfile) {
         return (<Redirect to={'/user/' + values.userId}/>);
@@ -145,6 +152,22 @@ export default function EditProfile({ match }) {
                     value={values.password}
                     onChange={handleChange('password')}
                     margin="normal"
+                />
+                <br/>
+                <Typography variant="subtitle1" className={classes.subheading}>
+                    I am an Educator
+                </Typography>
+                <FormControlLabel
+                    control={
+                        <Switch
+                            classes={{
+                                checked: classes.checked,
+                                bar: classes.bar,
+                            }}
+                            checked={values.educator}
+                            onChange={handleCheck}
+                        />}
+                    label={values.educator ? 'Yes' : 'No'}
                 />
                 <br/>
                 {
